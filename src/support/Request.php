@@ -18,6 +18,7 @@ declare (strict_types=1);
 
 namespace plugin\worker\support;
 
+use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
 use Workerman\Worker;
 
@@ -28,7 +29,7 @@ use Workerman\Worker;
  */
 class Request extends \think\Request
 {
-    public function withWorkerRequest(WorkerRequest $request): Request
+    public function withWorkerRequest(TcpConnection $connection, WorkerRequest $request): Request
     {
         $this->get = $request->get();
         $this->post = $request->post();
