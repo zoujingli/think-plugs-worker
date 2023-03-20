@@ -39,5 +39,10 @@
       }
     }
   },
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "config": {
+    "allow-plugins": {
+      "zoujingli/think-install": true
+    }
+  }
 }
