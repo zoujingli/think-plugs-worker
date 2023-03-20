@@ -28,6 +28,7 @@
       ]
     },
     "config": {
+      "type": "service",
       "name": "基于 Workerman 的 Http 访问服务",
       "icon": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
       "cover": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
