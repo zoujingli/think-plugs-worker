@@ -49,8 +49,8 @@ class App extends \think\App
             while (ob_get_level() > 1) ob_end_clean();
 
             // 切换进程数据
-            $this->request->withWorkerRequest($connection, $request);
             $this->session->setId($request->sessionId());
+            $this->request->withWorkerRequest($connection, $request);
 
             // 开始处理请求
             ob_start();

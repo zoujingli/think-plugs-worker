@@ -58,10 +58,10 @@ class Http extends Server
      */
     public function onWorkerStart(Worker $worker)
     {
-
         // 初始化应用
         $this->app = new App($this->root);
-        RuntimeService::init($this->app)->bind('request', Request::class)->initialize();
+        $this->app->bind('think\Request', Request::class);
+        RuntimeService::init($this->app)->initialize();
 
         // 定时发起数据库请求，防止失效而锁死
         Timer::add(60, function () {
