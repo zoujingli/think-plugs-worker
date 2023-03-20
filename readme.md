@@ -14,11 +14,11 @@
 ### 安装插件
 
 ```shell
-### 安装前建议更新所有组件
-composer update -o
+### 安装前建议更新全部组件
+composer update --optimize-autoloader
 
 ### 注意，插件仅支持在 ThinkAdmin v6.1 中使用
-composer require zoujingli/think-plugs-worker
+composer require zoujingli/think-plugs-worker --optimize-autoloader
 ```
 
 ### 卸载插件
