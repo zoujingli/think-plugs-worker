@@ -1,0 +1,43 @@
+{
+  "type": "think-admin-plugin",
+  "name": "zoujingli/think-plugs-worker",
+  "license": "Apache-2.0",
+  "homepage": "https://thinkadmin.top",
+  "description": "Workerman HttpServer for ThinkAdmin",
+  "authors": [
+    {
+      "name": "Anyon",
+      "email": "zoujingli@qq.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "workerman/workerman": "^4.1",
+    "zoujingli/think-install": "^1.0||dev-master",
+    "zoujingli/think-library": "^6.1||v6.0.x-dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "plugin\\worker\\": "src"
+    }
+  },
+  "extra": {
+    "think": {
+      "services": [
+        "plugin\\worker\\Service"
+      ]
+    },
+    "config": {
+      "name": "基于 Workerman 的 Http 访问服务",
+      "icon": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
+      "cover": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
+      "description": "基于 Workerman 的 Http 访问服务，可通过指令部署内存环境运行"
+    },
+    "plugin": {
+      "copy": {
+        "stc/worker.php": "config/worker.php"
+      }
+    }
+  },
+  "minimum-stability": "dev"
+}
