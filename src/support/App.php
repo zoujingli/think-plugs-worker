@@ -31,8 +31,6 @@ use Workerman\Protocols\Http\Response as WorkerResponse;
  */
 class App extends \think\App
 {
-    protected $beginTime;
-    protected $beginMemory;
 
     /**
      * @param TcpConnection $connection
@@ -45,7 +43,7 @@ class App extends \think\App
             $this->delete('view');
             $this->db->clearQueryTimes();
             $this->beginTime = microtime(true);
-            $this->beginMemory = memory_get_usage();
+            $this->beginMem = memory_get_usage();
             while (ob_get_level() > 1) ob_end_clean();
 
             // 切换进程数据
