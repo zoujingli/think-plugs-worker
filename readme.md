@@ -65,6 +65,11 @@ composer remove zoujingli/think-plugs-worker
 
 ```shell
 php think xadmin:worker
+
+#========= 启动参数配置 =========#
+### 守护方式运行  -d
+### 指定监听域名  --host 127.0.0.1
+### 指定监听端口  --port 2346 
 ```
 
 然后就可以通过浏览器直接访问当前应用
@@ -73,13 +78,23 @@ php think xadmin:worker
 http://localhost:2346
 ```
 
-Linux 下面可以支持下面指令
+Linux 支持操作指令如下：
 
-```
-php think xadmin:worker [start|stop|reload|restart|status]
+```shell
+php think xadmin:worker [start|stop|reload|restart|status|-d]
+
+# 以上所有操作效果与 Workerman 官方操作一致，详情请阅读对应文档。
 ```
 
-其他 **workerman** 的参数可以在应用配置目录下的 **worker.php** 里面的 **worker** 项配置。
+Windows 支持操作指令如下：
+
+```shell
+php think xadmin:worker [start|stop|status|-d]
+
+# 以上 stop|status|-d 操作是基于 wimc 实现，Workerman 官方不支持此种方式操作。  
+```
+
+其他 **workerman** 的参数可以在应用配置目录下的 **worker.php** 里面 **worker** 项配置。
 
 更多其他特性请阅读 **workerman** 文档 https://www.workerman.net/doc/workerman
 

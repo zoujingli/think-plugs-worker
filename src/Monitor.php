@@ -271,6 +271,7 @@ abstract class Monitor
                 echo $file . " update and reload\n";
                 // send SIGUSR1 signal to master process for reload
                 if (DIRECTORY_SEPARATOR === '/') {
+                    // ProcessService::exec(ProcessService::think('xadmin:worker reload'));
                     posix_kill(posix_getppid(), SIGUSR1);
                 } else {
                     return true;
