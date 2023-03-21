@@ -40,12 +40,16 @@ class Http extends Server
     /** @var array */
     protected $monitor;
 
-    public function __construct(string $host, int $port, array $context = [])
+    /** @var callable */
+    protected $callable;
+
+    public function __construct(string $host, int $port, array $context = [], ?callable $callable = null)
     {
         $this->port = $port;
         $this->host = $host;
         $this->context = $context;
         $this->protocol = 'http';
+        $this->callable = $callable;
         parent::__construct();
     }
 
@@ -107,6 +111,8 @@ class Http extends Server
             // 文件修改过或者没有 if-modified-since 头则发送文件
             $response = (new WorkerResponse())->withFile($file);
             $connection->send($response->header('Server', 'x-server'));
+        } elseif (is_callable($this->callable) && call_user_func($this->callable, $connection, $request) === true) {
+            return;
         } else {
             $this->app->worker($connection, $request);
         }
