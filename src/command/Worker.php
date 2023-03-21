@@ -95,10 +95,16 @@ class Worker extends Command
             $worker->setRoot($this->app->getRootPath());
         } else {
             if (empty($this->config['listen'])) {
-                $this->output->writeln("<error>Configuration Custom {$custom}.listen Undefined.</error> ");
-                return;
+                $listen = "websocket://{$host}:{$port}";
+            } elseif (is_array($attr = parse_url($this->config['listen']))) {
+                $attr['port'] = $port;
+                $attr['host'] = $host;
+                $attr['scheme'] = $attr['scheme'] ?? 'websocket';
+                $listen = "{$attr['scheme']}://{$attr['host']}:{$attr['port']}";
+            } else {
+                $listen = $this->config['listen'];
             }
-            $worker = new Workerman($this->config['listen'], $this->config['context'] ?? []);
+            $worker = new Workerman($listen, $this->config['context'] ?? []);
         }
 
         // 开启守护进程模式
@@ -137,19 +143,19 @@ class Worker extends Command
 
     /**
      * 自定义服务类
-     * @param string $class
-     * @return void
+     * @template T of Server
+     * @param class-string<T> $class
+     * @return T|false|Server
      */
     protected function startServer(string $class)
     {
         if (class_exists($class)) {
-            $worker = new $class;
-            if (!$worker instanceof Server) {
-                $this->output->writeln("<error>Worker Server Class Must extends \\plugin\\worker\\Server</error>");
-            }
+            if (($worker = new $class) instanceof Server) return $worker;
+            $this->output->writeln("<error>Worker Server Class Must extends \\plugin\\worker\\Server</error>");
         } else {
             $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
         }
+        return false;
     }
 
     /**
@@ -204,10 +210,10 @@ class Worker extends Command
      * 初始化 Unix 环境
      * @param string $custom
      * @param string $action
-     * @param string $port
+     * @param integer $port
      * @return boolean
      */
-    protected function unixNext(string $custom, string $action, string $port): bool
+    protected function unixNext(string $custom, string $action, int $port): bool
     {
         if (!in_array($action, ['start', 'stop', 'reload', 'restart', 'status', 'connections'])) {
             $this->output->writeln("<error>Invalid argument action:{$action}, Expected start|stop|restart|reload|status|connections .</error>");
@@ -256,7 +262,7 @@ class Worker extends Command
     private function withConfig(): array
     {
         if (($custom = $this->input->getOption('custom')) !== 'default') {
-            $config = $this->app->config->get("worker.custom.{$custom}", []);
+            $config = $this->app->config->get("worker.customs.{$custom}", []);
             return [$custom, empty($config) ? false : $config];
         } else {
             return [$custom, $this->app->config->get('worker', [])];

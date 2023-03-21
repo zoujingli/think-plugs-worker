@@ -48,7 +48,7 @@ return [
         'limit' => '1G'
     ],
     // 自定义服务配置（可选）
-    'custom'   => [
+    'customs'  => [
         // 自定义 txt 服务1
         'text' => [
             // 监听地址(<协议>://<地址>:<端口>)
@@ -59,7 +59,7 @@ return [
             'context' => [],
             // 服务进程参数配置
             'worker'  => [
-                'name'      => 'TextTest',
+                //'name' => 'TextTest',
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
                 // onConnect => [class,method]

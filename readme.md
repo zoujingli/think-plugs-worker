@@ -61,7 +61,7 @@ composer remove zoujingli/think-plugs-worker
         'limit' => '1G'
     ],
     // 自定义服务配置（可选）
-    'custom'   => [
+    'customs'  => [
         // 自定义 txt 服务1
         'text' => [
             // 监听地址(<协议>://<地址>:<端口>)
@@ -72,7 +72,7 @@ composer remove zoujingli/think-plugs-worker
             'context' => [],
             // 服务进程参数配置
             'worker'  => [
-                'name'      => 'TextTest',
+                //'name' => 'TextTest',
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
                 // onConnect => [class,method]
@@ -101,6 +101,7 @@ php think xadmin:worker
 ### 守护方式运行  -d
 ### 指定监听域名  --host 127.0.0.1
 ### 指定监听端口  --port 2346 
+### 启动指定服务  --custom text
 ```
 
 然后就可以通过浏览器直接访问当前应用
