@@ -35,7 +35,7 @@
       "description": "基于 Workerman 的 Http 访问服务，可通过指令部署内存环境运行"
     },
     "plugin": {
-      "copy": {
+      "init": {
         "stc/worker.php": "config/worker.php"
       }
     }
