@@ -20,7 +20,7 @@ declare (strict_types=1);
 namespace plugin\worker\command;
 
 use plugin\worker\Server;
-use plugin\worker\support\Http;
+use plugin\worker\support\HttpServer;
 use think\admin\Command;
 use think\console\Input;
 use think\console\input\Argument;
@@ -77,9 +77,6 @@ class Worker extends Command
         } else {
             if (!$this->unixNext($custom, $action, $port)) return;
         }
-        if ('start' == $action) {
-            $output->writeln('Starting Workerman http server...');
-        }
 
         if (empty($this->config['worker']['logFile'])) {
             $this->config['worker']['logFile'] = syspath("safefile/worker/worker_{$port}.log");
@@ -91,28 +88,41 @@ class Worker extends Command
         is_dir($dir = dirname($this->config['worker']['logFile'])) or mkdir($dir, 0777, true);
 
         if ($custom === 'default') {
-            $worker = new Http($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
+            if ('start' == $action) {
+                $output->writeln('Starting Workerman http server...');
+            }
+            $worker = new HttpServer($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
             $worker->setRoot($this->app->getRootPath());
+            if (!$this->process->isWin()) {
+                // 设置文件变更及内存超限监控管理
+                if (empty($this->config['files']['path'])) {
+                    $this->config['files']['path'] = [$this->app->getBasePath(), $this->app->getConfigPath()];
+                }
+                $worker->setMonitorFiles(intval($this->config['files']['time'] ?? 0), $this->config['files']['path']);
+                $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
+            }
         } else {
             if (empty($this->config['listen'])) {
                 $listen = "websocket://{$host}:{$port}";
             } elseif (is_array($attr = parse_url($this->config['listen']))) {
-                $attr['port'] = $port;
-                $attr['host'] = $host;
-                $attr['scheme'] = $attr['scheme'] ?? 'websocket';
+                $attr = ['port' => $port, 'host' => $host] + $attr + ['scheme' => 'websocket'];
                 $listen = "{$attr['scheme']}://{$attr['host']}:{$attr['port']}";
             } else {
                 $listen = $this->config['listen'];
             }
+            if ('start' == $action) {
+                $first = strstr($listen, ':', true) ?: 'unknow';
+                $output->writeln("Starting Workerman {$first} server...");
+            }
             $worker = new Workerman($listen, $this->config['context'] ?? []);
         }
 
-        // 开启守护进程模式
+        // 守护进程模式
         if ($this->input->hasOption('daemon')) {
             Workerman::$daemonize = true;
         }
 
-        // 全局静态属性设置
+        // 静态属性设置
         foreach ($this->config['worker'] ?? [] as $name => $value) {
             if (in_array($name, ['daemonize', 'stdoutFile', 'pidFile', 'logFile'])) {
                 Workerman::${$name} = $value;
@@ -120,7 +130,7 @@ class Worker extends Command
             }
         }
 
-        // 设置服务器参数
+        // 设置属性参数
         foreach ($this->config['worker'] ?? [] as $name => $value) {
             $worker->$name = $value;
         }
@@ -128,13 +138,6 @@ class Worker extends Command
         // 运行环境提示
         if ($this->process->isWin()) {
             $output->writeln('You can exit with <info>`CTRL-C`</info>');
-        } else {
-            // 设置文件变更及内存超限监控管理
-            if (empty($this->config['files']['path'])) {
-                $this->config['files']['path'] = [$this->app->getBasePath(), $this->app->getConfigPath()];
-            }
-            $worker->setMonitorFiles(intval($this->config['files']['time'] ?? 0), $this->config['files']['path']);
-            $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
         }
 
         // 应用并启动服务
@@ -142,7 +145,7 @@ class Worker extends Command
     }
 
     /**
-     * 自定义服务类
+     * 创建自定义服务类
      * @template T of Server
      * @param class-string<T> $class
      * @return T|false|Server

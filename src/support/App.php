@@ -24,15 +24,17 @@ use Workerman\Protocols\Http\Request as WorkerRequest;
 use Workerman\Protocols\Http\Response as WorkerResponse;
 
 /**
- * 定制基础类
+ * 自定义基础类
  * @class App
  * @package plugin\worker\support
- * @property Request $request
+ * @property ThinkCookie $cookie
+ * @property ThinkRequest $request
  */
 class App extends \think\App
 {
 
     /**
+     * 访问请求处理
      * @param TcpConnection $connection
      * @param WorkerRequest $request
      */
@@ -47,17 +49,17 @@ class App extends \think\App
             while (ob_get_level() > 1) ob_end_clean();
 
             // 切换进程数据
+            $this->session->clear();
             $this->session->setId($request->sessionId());
             $this->request->withWorkerRequest($connection, $request);
+            $response = $this->cookie->withWorkerResponse();
 
-            // 开始处理请求
             ob_start();
-            $thinkResponse = $this->http->run($this->request);
-            $body = ob_get_clean();
-
-            // 处理请求结果
-            $header = $thinkResponse->getHeader() + ['Server' => 'x-server'];
-            $response = new WorkerResponse($thinkResponse->getCode(), $header, $body . $thinkResponse->getContent());
+            // 执行处理请求
+            $thinkres = $this->http->run($this->request);
+            $response->withBody(ob_get_clean() . $thinkres->getContent());
+            $response->withStatus($thinkres->getCode()) && $this->cookie->save();
+            $response->withHeaders($thinkres->getHeader() + ['Server' => 'x-server']);
             if (strtolower($request->header('connection')) === 'keep-alive') {
                 $connection->send($response);
             } else {
@@ -65,7 +67,7 @@ class App extends \think\App
             }
 
             // 结束当前请求
-            $this->http->end($thinkResponse);
+            $this->http->end($thinkres);
 
         } catch (\RuntimeException|\Exception|\Throwable|\Error $exception) {
             // 其他异常处理

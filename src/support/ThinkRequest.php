@@ -18,19 +18,19 @@ declare (strict_types=1);
 
 namespace plugin\worker\support;
 
+use think\Request;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
 use Workerman\Worker;
 
 /**
- * 定制请求管理类
- * @class Request
+ * 自定义 Request
+ * @class ThinkRequest
  * @package plugin\worker\support
  */
-class Request extends \think\Request
+class ThinkRequest extends Request
 {
-
-    public function withWorkerRequest(TcpConnection $connection, WorkerRequest $request): Request
+    public function withWorkerRequest(TcpConnection $connection, WorkerRequest $request): ThinkRequest
     {
         $this->get = $request->get();
         $this->file = $request->file() ?? [];

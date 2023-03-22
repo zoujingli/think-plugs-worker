@@ -29,7 +29,12 @@ use Workerman\Protocols\Http\Session;
 use Workerman\Timer;
 use Workerman\Worker;
 
-class Http extends Server
+/**
+ * 自定义 Http 服务
+ * @class HttpServer
+ * @package plugin\worker\support
+ */
+class HttpServer extends Server
 {
     /** @var App */
     protected $app;
@@ -65,7 +70,8 @@ class Http extends Server
     {
         // 初始化应用
         $this->app = new App($this->root);
-        $this->app->bind('think\Request', Request::class);
+        $this->app->bind('think\Cookie', ThinkCookie::class);
+        $this->app->bind('think\Request', ThinkRequest::class);
         RuntimeService::init($this->app)->initialize();
 
         // 初始化会话
@@ -85,7 +91,7 @@ class Http extends Server
 
         // 设置文件变化及内存超限监控管理
         if (!ProcessService::isWin() && 0 == $worker->id && $this->monitor) {
-            Monitor::listen($this->monitor['path'] ?? []);
+            Monitor::listen($this->monitor['files_path'] ?? []);
             Monitor::enableFilesMonitor($this->monitor['files_interval'] ?? 0);
             Monitor::enableMemoryMonitor($this->monitor['memory_interval'] ?? 0, $this->monitor['memory_limit'] ?? null);
         }
@@ -129,29 +135,6 @@ class Http extends Server
     }
 
     /**
-     * 设置进程属性配置
-     * @param array $option
-     * @return void
-     */
-    public function setOption(array $option)
-    {
-        if (count($option) > 0) foreach ($option as $key => $val) {
-            $this->worker->$key = $val;
-        }
-    }
-
-    /**
-     * 设置运行属性配置
-     * @param string $name
-     * @param mixed $value
-     * @return void
-     */
-    public function setStaticOption(string $name, $value)
-    {
-        Worker::${$name} = $value;
-    }
-
-    /**
      * 设置文件监控配置
      * @param integer $interval
      * @param array $path
@@ -159,7 +142,7 @@ class Http extends Server
      */
     public function setMonitorFiles(int $interval = 2, array $path = [])
     {
-        $this->monitor['path'] = $path;
+        $this->monitor['files_path'] = $path;
         $this->monitor['files_interval'] = $interval;
     }
 
