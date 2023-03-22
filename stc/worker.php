@@ -47,31 +47,4 @@ return [
         // 限制内存大小（可选单位有 G M K ）
         'limit' => '1G'
     ],
-    // 自定义服务配置（可选）
-    'customs'  => [
-        // 自定义 txt 服务1
-        'text' => [
-            // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'text://0.0.0.0:8686',
-            // 高级自定义服务类
-            'classes' => '',
-            // 套接字上下文选项
-            'context' => [],
-            // 服务进程参数配置
-            'worker'  => [
-                //'name' => 'TextTest',
-                // onWorkerStart => [class,method]
-                // onWorkerReload => [class,method]
-                // onConnect => [class,method]
-                // onBufferFull => [class,method]
-                // onBufferDrain => [class,method]
-                // onError => [class,method]
-                // 设置连接的 onMessage 回调
-                'onMessage' => function ($connection, $data) {
-                    dump($data);
-                    $connection->send("hello world");
-                }
-            ]
-        ]
-    ],
 ];

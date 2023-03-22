@@ -87,7 +87,7 @@ composer remove zoujingli/think-plugs-worker
             ]
         ]
     ],
-]
+];
 ```
 
 ### 使用方法
