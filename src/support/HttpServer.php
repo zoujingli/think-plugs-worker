@@ -104,24 +104,29 @@ class HttpServer extends Server
      */
     public function onMessage(TcpConnection $connection, WorkerRequest $request)
     {
+        // 请求服务器实体文件，检测文件状态并发送结果
         if (is_file($file = syspath("public{$request->path()}"))) {
             // 检查 if-modified-since 头判断文件是否修改过
-            if (!empty($ifModifiedSince = $request->header('if-modified-since'))) {
+            if (!empty($modifiedSince = $request->header('if-modified-since'))) {
                 $modifiedTime = date('D, d M Y H:i:s', filemtime($file)) . ' ' . date_default_timezone_get();
-                // 文件未修改则返回 304
-                if ($modifiedTime === $ifModifiedSince) {
+                // 文件未修改则返回 304，直接使用本地文件缓存
+                if ($modifiedTime === $modifiedSince) {
                     $connection->send(new WorkerResponse(304, ['Server' => 'x-server']));
                     return;
                 }
             }
             // 文件修改过或者没有 if-modified-since 头则发送文件
-            $response = (new WorkerResponse())->withFile($file);
-            $connection->send($response->header('Server', 'x-server'));
-        } elseif (is_callable($this->callable) && call_user_func($this->callable, $connection, $request) === true) {
+            $connection->send((new WorkerResponse())->withFile($file)->header('Server', 'x-server'));
             return;
-        } else {
-            $this->app->worker($connection, $request);
         }
+
+        // 自定义消息回调处理，返回 true 则终止后面的处理
+        if (is_callable($this->callable)) {
+            if (call_user_func($this->callable, $connection, $request) === true) return;
+        }
+
+        // 转发消息并初始化框架，调度 path 对应的系统功能
+        $this->app->worker($connection, $request);
     }
 
     /**
