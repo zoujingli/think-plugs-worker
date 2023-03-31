@@ -18,20 +18,15 @@ declare (strict_types=1);
 
 namespace plugin\worker;
 
-use plugin\worker\command\Worker;
-use think\admin\Plugin;
-
-class Service extends Plugin
+/**
+ * 插件安装器事件处理
+ * @class Event
+ * @package plugin\worker
+ */
+abstract class Event
 {
-    protected $package = 'zoujingli/think-plugs-worker';
-
-    public function register()
+    public static function onRemove()
     {
-        $this->commands(['xadmin:worker' => Worker::class]);
-    }
-
-    public static function menu(): array
-    {
-        return [];
+        @unlink('config/worker.php');
     }
 }

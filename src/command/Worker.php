@@ -177,7 +177,7 @@ class Worker extends Command
         $command = "xadmin:worker --custom {$custom} --port {$port}";
         if ($action === 'start' && $this->input->hasOption('daemon')) {
             if (count($query = $this->process->thinkQuery($command)) > 0) {
-                $this->output->writeln("<info>Worker daemons [{$custom}:{$port}] started successfully for Process {$query[0]['pid']} </info>");
+                $this->output->writeln("<info>Worker daemons [{$custom}:{$port}] already exists for Process {$query[0]['pid']} </info>");
                 return false;
             }
             $this->process->thinkExec($command, 500);
@@ -190,7 +190,6 @@ class Worker extends Command
         } elseif ($action === 'stop') {
             foreach ($result = $this->process->thinkQuery($command) as $item) {
                 $this->process->close(intval($item['pid']));
-                $this->output->writeln("<info>Successfully sent end signal to Worker:{$port} {$item['pid']} </info>");
                 $this->output->writeln("<info>Send stop signal to Worker daemons [{$custom}:{$port}] Process {$item['pid']} </info>");
             }
             if (empty($result)) {
@@ -198,11 +197,13 @@ class Worker extends Command
             }
             return false;
         } elseif ($action === 'status') {
-            foreach ($result = $this->process->thinkQuery($command) as $item) {
-                $this->output->writeln("Worker daemons [{$custom}:{$port}] Process {$item['pid']} running");
+            foreach ($result = $this->process->thinkQuery('xadmin:worker') as $item) {
+                if (preg_match('#--custom\s+(.*?)\s+--port\s+(\d+)#', $item['cmd'], $matches)) {
+                    $this->output->writeln("Worker daemons [{$matches[1]}:{$matches[2]}] Process {$item['pid']} running");
+                }
             }
             if (empty($result)) {
-                $this->output->writeln("<error>The Worker daemons [{$custom}:{$port}] is not running. </error>");
+                $this->output->writeln("<error>The Worker daemons is not running. </error>");
             }
             return false;
         }

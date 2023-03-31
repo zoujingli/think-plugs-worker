@@ -37,7 +37,10 @@
     "plugin": {
       "init": {
         "stc/worker.php": "config/worker.php"
-      }
+      },
+      "event": [
+        "plugin\\worker\\Event"
+      ]
     }
   },
   "minimum-stability": "dev",
