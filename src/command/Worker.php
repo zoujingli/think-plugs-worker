@@ -30,7 +30,7 @@ use Workerman\Worker as Workerman;
 
 /**
  * Worker
- * Class Worker
+ * @class Worker
  * @package think\admin\server\command
  */
 class Worker extends Command

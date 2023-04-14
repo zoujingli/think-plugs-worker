@@ -4,10 +4,10 @@
 [![Total Downloads](https://poser.pugx.org/zoujingli/think-plugs-worker/downloads)](https://packagist.org/packages/zoujingli/think-plugs-worker)
 [![Monthly Downloads](https://poser.pugx.org/zoujingli/think-plugs-worker/d/monthly)](https://packagist.org/packages/zoujingli/think-plugs-worker)
 [![Daily Downloads](https://poser.pugx.org/zoujingli/think-plugs-worker/d/daily)](https://packagist.org/packages/zoujingli/think-plugs-worker)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D7.1-8892BF.svg)](http://www.php.net)
-[![License](https://poser.pugx.org/zoujingli/think-plugs-worker/license)](https://packagist.org/packages/zoujingli/think-plugs-worker)
+[![PHP Version](https://doc.thinkadmin.top/static/icon/php-7.1.svg)](https://thinkadmin.top)
+[![License](https://poser.pugx.org/zoujingli/think-plugs-worker/license)](https://gitee.com/zoujingli/think-plugs-worker/blob/master/license)
 
-基于 **Workerman** 的 **HttpServer** 服务插件 ，构建内存方式的 Web 服务！
+基于 **Workerman** 的 **HttpServer** 插件 ，基于内存方案快速运行 Web 及其他通信协议服务！
 
 代码主仓库放在 **Gitee**，**Github** 仅为镜像仓库用于发布 **Composer** 包。
 
