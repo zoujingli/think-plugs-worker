@@ -92,6 +92,8 @@ composer remove zoujingli/think-plugs-worker
         ],
         // 自定义 WebSocket 服务
         'websocket' => [
+             // 进程类型 Workerman|Gateway|Business 
+            'type'    => 'Gateway',
             // 监听地址(<协议>://<地址>:<端口>)
             'listen'  => 'websocket://0.0.0.0:8688',
             // 高级自定义服务类
@@ -148,6 +150,15 @@ php think xadmin:worker --custom websocket
 
 ```
 http://localhost:2346
+```
+
+默认使用 `Workerman` 工作方式，如果需要使用 `Gateway`、`Business` 方式，需要执行安装 `GatewayWorker` 组件。
+
+安装 `GatewayWorker` 的指令如下：
+
+```shell
+# 安装 GatewayWorker 组件
+composer require webman/gateway-worker
 ```
 
 Linux 支持操作指令如下：
