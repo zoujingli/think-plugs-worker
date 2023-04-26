@@ -105,7 +105,11 @@ composer remove zoujingli/think-plugs-worker
                 // onError => [class,method]
                 // 设置连接的 onMessage 回调
                 'onMessage' => function ($connection, $data) {
-                    dump($data);
+                    //// $connection->worker->connections 为全部连接
+                    // foreach($connection->worker->connections as $con)
+                    // {
+                    //    $con->send($data);
+                    // }
                     $connection->send("hello world");
                 }
             ]
