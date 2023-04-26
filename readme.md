@@ -152,7 +152,7 @@ php think xadmin:worker --custom websocket
 http://localhost:2346
 ```
 
-默认使用 `Workerman` 工作方式，如果需要使用 `Gateway`、`Business` 方式，需要执行安装 `GatewayWorker` 组件。
+默认使用 `Workerman` 工作方式，如果需要使用 `Gateway`、`Business` 方式，需要安装 `GatewayWorker` 组件。
 
 安装 `GatewayWorker` 的指令如下：
 
