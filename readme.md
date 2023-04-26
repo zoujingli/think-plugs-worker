@@ -29,6 +29,8 @@ composer remove zoujingli/think-plugs-worker
 
 ### 配置参数
 
+配置文件 `config/worker.php`
+
 ```php
 [
     // 服务监听地址
