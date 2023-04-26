@@ -158,11 +158,11 @@ class Worker extends Command
         switch (strtolower($type)) {
             case 'gateway':
                 if (class_exists('GatewayWorker\Gateway')) return new Gateway($listen, $context);
-                $this->output->error("请执行 composer require webman/gateway-worker 安装 GatewayWorker 组件");
+                $this->output->error("请执行 composer require workerman/gateway-worker 安装 GatewayWorker 组件");
                 exit(1);
             case 'business':
                 if (class_exists('GatewayWorker\BusinessWorker')) return new BusinessWorker($listen, $context);
-                $this->output->error("请执行 composer require webman/gateway-worker 安装 GatewayWorker 组件");
+                $this->output->error("请执行 composer require workerman/gateway-worker 安装 GatewayWorker 组件");
                 exit(1);
             default:
                 return new Workerman($listen, $context);

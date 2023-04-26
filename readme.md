@@ -158,7 +158,7 @@ http://localhost:2346
 
 ```shell
 # 安装 GatewayWorker 组件
-composer require webman/gateway-worker
+composer require workerman/gateway-worker
 ```
 
 Linux 支持操作指令如下：
