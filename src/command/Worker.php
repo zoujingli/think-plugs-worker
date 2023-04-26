@@ -19,6 +19,8 @@ declare (strict_types=1);
 
 namespace plugin\worker\command;
 
+use GatewayWorker\BusinessWorker;
+use GatewayWorker\Gateway;
 use plugin\worker\Server;
 use plugin\worker\support\HttpServer;
 use think\admin\Command;
@@ -114,7 +116,7 @@ class Worker extends Command
                 $first = strstr($listen, ':', true) ?: 'unknow';
                 $output->writeln("Starting Workerman {$first} server...");
             }
-            $worker = new Workerman($listen, $this->config['context'] ?? []);
+            $worker = $this->makeWorker($this->config['type'] ?? '', $listen, $this->config['context'] ?? []);
         }
 
         // 守护进程模式
@@ -142,6 +144,29 @@ class Worker extends Command
 
         // 应用并启动服务
         Workerman::runAll();
+    }
+
+    /**
+     * 创建 Worker 进程实例
+     * @param string $type
+     * @param string $listen
+     * @param array $context
+     * @return BusinessWorker|Gateway|Workerman
+     */
+    protected function makeWorker(string $type, string $listen, array $context = [])
+    {
+        switch (strtolower($type)) {
+            case 'gateway':
+                if (class_exists('GatewayWorker\Gateway')) return new Gateway($listen, $context);
+                $this->output->error("请执行 composer require webman/gateway-worker 安装 GatewayWorker 组件");
+                exit(1);
+            case 'business':
+                if (class_exists('GatewayWorker\BusinessWorker')) return new BusinessWorker($listen, $context);
+                $this->output->error("请执行 composer require webman/gateway-worker 安装 GatewayWorker 组件");
+                exit(1);
+            default:
+                return new Workerman($listen, $context);
+        }
     }
 
     /**
