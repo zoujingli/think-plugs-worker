@@ -62,7 +62,7 @@ composer remove zoujingli/think-plugs-worker
     ],
     // 自定义服务配置（可选）
     'customs'  => [
-        // 自定义 txt 服务1
+        // 自定义 text 服务
         'text' => [
             // 监听地址(<协议>://<地址>:<端口>)
             'listen'  => 'text://0.0.0.0:8686',
@@ -85,7 +85,31 @@ composer remove zoujingli/think-plugs-worker
                     $connection->send("hello world");
                 }
             ]
-        ]
+        ],
+        // 自定义 WebSocket 服务
+        'websocket' => [
+            // 监听地址(<协议>://<地址>:<端口>)
+            'listen'  => 'websocket://0.0.0.0:8688',
+            // 高级自定义服务类
+            'classes' => '',
+            // 套接字上下文选项
+            'context' => [],
+            // 服务进程参数配置
+            'worker'  => [
+                //'name' => 'WebsocketTest',
+                // onWorkerStart => [class,method]
+                // onWorkerReload => [class,method]
+                // onConnect => [class,method]
+                // onBufferFull => [class,method]
+                // onBufferDrain => [class,method]
+                // onError => [class,method]
+                // 设置连接的 onMessage 回调
+                'onMessage' => function ($connection, $data) {
+                    dump($data);
+                    $connection->send("hello world");
+                }
+            ]
+        ],
     ],
 ];
 ```
@@ -95,13 +119,21 @@ composer remove zoujingli/think-plugs-worker
 在命令行启动服务端
 
 ```shell
-php think xadmin:worker
-
 #========= 启动参数配置 =========#
 ### 守护方式运行  -d
 ### 指定监听域名  --host 127.0.0.1
 ### 指定监听端口  --port 2346 
 ### 启动指定服务  --custom text
+
+# 启动默认 Http 服务
+php think xadmin:worker
+
+# 启动自定义 text 服务，注意 text 为 customs 配置项
+php think xadmin:worker --custom text
+
+# 启动自定义 WebSocket 服务，注意 websocket 为 customs 配置项
+php think xadmin:worker --custom websocket
+
 ```
 
 然后就可以通过浏览器直接访问当前应用
