@@ -66,9 +66,9 @@ composer remove zoujingli/think-plugs-worker
     'customs'  => [
         // 自定义 text 服务
         'text' => [
-            // 进程类型 Workerman|Gateway|Business 
+            // 进程类型(Workerman|Gateway|Business)
             'type'    => 'workerman',
-            // 监听地址，格式(<协议>://<地址>:<端口>)
+            // 监听地址(<协议>://<地址>:<端口>)
             'listen'  => 'text://0.0.0.0:8686',
             // 高级自定义服务类
             'classes' => '',
@@ -92,7 +92,7 @@ composer remove zoujingli/think-plugs-worker
         ],
         // 自定义 WebSocket 服务
         'websocket' => [
-             // 进程类型 Workerman|Gateway|Business 
+            // 进程类型(Workerman|Gateway|Business) 
             'type'    => 'Gateway',
             // 监听地址(<协议>://<地址>:<端口>)
             'listen'  => 'websocket://0.0.0.0:8688',
