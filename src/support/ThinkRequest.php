@@ -49,6 +49,13 @@ class ThinkRequest extends Request
         $port = intval($this->header['x-requested-port'] ?? (strpos($this->host, ':') !== false ? explode(':', $this->host)[1] : $connection->getRemoteIp()));
         if (strpos($this->host, ':') !== false && in_array($port, [80, 443])) $this->host = strstr($this->host, ':', true);
 
+        // 替换全局变量
+        $_GET = $request->get();
+        $_POST = $request->post();
+        $_REQUEST = $request->post() + $request->get() + $request->cookie();
+        $_SERVER['REQUEST_METHOD'] = strtoupper($request->method());
+        $GLOBALS['HTTP_RAW_POST_DATA'] = $request->rawBody();
+
         // 服务变量替换
         return $this->withInput($request->rawBody())->withServer(array_filter([
             'HTTP_HOST'              => $this->host,
