@@ -65,11 +65,11 @@ composer remove zoujingli/think-plugs-worker
     // 自定义服务配置（可选）
     'customs'  => [
         // 自定义 text 服务
-        'text' => [
+        'websocket' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'workerman',
+            'type'    => 'Workerman',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'text://0.0.0.0:8686',
+            'listen'  => 'websocket://0.0.0.0:8686',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
@@ -85,30 +85,32 @@ composer remove zoujingli/think-plugs-worker
                 // onError => [class,method]
                 // 设置连接的 onMessage 回调
                 'onMessage' => function ($connection, $data) {
-                    dump($data);
                     $connection->send("hello world");
                 }
             ]
         ],
-        // 自定义 WebSocket 服务
-        'websocket' => [
+        // 自定义 Gateway 服务
+        'gateway' => [
             // 进程类型(Workerman|Gateway|Register|Business) 
             'type'    => 'Gateway',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'websocket://0.0.0.0:8688',
+            'listen'  => 'websocket://0.0.0.0:8689',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
             'worker'  => [
-                //'name' => 'WebsocketTest',
+                // 'name' => 'WebsocketTest',
+                // "count" => 4,
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
                 // onConnect => [class,method]
                 // onBufferFull => [class,method]
                 // onBufferDrain => [class,method]
                 // onError => [class,method]
+                // 注册服务地址
+                "registerAddress" => '0.0.0.0:1236',
                 // 设置连接的 onMessage 回调
                 'onMessage' => function ($connection, $data) {
                     //// $connection->worker->connections 为全部连接
@@ -119,6 +121,30 @@ composer remove zoujingli/think-plugs-worker
                     $connection->send("hello world");
                 }
             ]
+        ],
+        // 自定义 Register 服务
+        'reigster' => [
+            // 进程类型(Workerman|Gateway|Register|Business) 
+            'type'    => 'Register',
+            // 监听地址(<协议>://<地址>:<端口>)
+            'listen'  => 'text://0.0.0.0:1236',
+        ],
+         // 自定义 Business 服务
+         'business' => [
+            // 进程类型(Workerman|Gateway|Register|Business) 
+            'type'    => 'Business',
+            // 高级自定义服务类
+            'classes' => '',
+             // 服务进程参数配置
+            'worker' => [
+                "name"  => 'Business',
+                // "count" => 4,
+                // 注册服务地址
+                "registerAddress" => '0.0.0.0:1236',
+                // "onWorkerStart" => [class, method],
+                // "onWorkerStop" => [class, method],
+                // "eventHandler" => "\my\namespace\MyEvent"
+            ]       
         ],
     ],
 ];
