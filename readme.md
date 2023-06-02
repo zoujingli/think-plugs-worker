@@ -240,18 +240,22 @@ php think xadmin:worker --custom websocket
 http://localhost:2346
 ```
 
-默认使用 `Workerman` 工作方式，如果需要使用 `Gateway`、`Business` 方式，需要安装 `GatewayWorker` 组件。
+默认使用 `Workerman` 工作方式，如果需要使用  `Gateway` 方式，需要安装 `GatewayWorker` 组件。
 
 安装 `GatewayWorker` 的指令如下：
-
-注意：启用 GatewayWorker 需要单独启动三个进程，分别是 `Register`、`Gateway`、`Business`，中间需要 `Register` 进程连接。
 
 ```shell
 # 安装 GatewayWorker 组件
 composer require workerman/gateway-worker
 ```
 
-Linux 支持操作指令如下：
+**注意：** 启用 `Gateway` 时需要单独启动三个进程，分别是 `Gateway`、`Register`、`Business`，中间需要 `Register` 进程连接。
+
+**数据通信模型：**
+
+`Client` `<->` `Gateway` `<->` `Register` `<->` `Business` `<->` `Events`
+
+**Linux** 支持操作指令如下：
 
 ```shell
 php think xadmin:worker [start|stop|reload|restart|status|-d]
@@ -259,7 +263,7 @@ php think xadmin:worker [start|stop|reload|restart|status|-d]
 # 以上所有操作效果与 Workerman 官方操作一致，详情请阅读对应文档。
 ```
 
-Windows 支持操作指令如下：
+**Windows** 支持操作指令如下：
 
 ```shell
 php think xadmin:worker [start|stop|status|-d]
