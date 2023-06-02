@@ -65,6 +65,31 @@ composer remove zoujingli/think-plugs-worker
     // 自定义服务配置（可选）
     'customs'  => [
         // 自定义 text 服务
+        'text' => [
+            // 进程类型(Workerman|Gateway|Register|Business)
+            'type'    => 'Workerman',
+            // 监听地址(<协议>://<地址>:<端口>)
+            'listen'  => 'text://0.0.0.0:8685',
+            // 高级自定义服务类
+            'classes' => '',
+            // 套接字上下文选项
+            'context' => [],
+            // 服务进程参数配置
+            'worker'  => [
+                //'name' => 'TextTest',
+                // onWorkerStart => [class,method]
+                // onWorkerReload => [class,method]
+                // onConnect => [class,method]
+                // onBufferFull => [class,method]
+                // onBufferDrain => [class,method]
+                // onError => [class,method]
+                // 设置连接的 onMessage 回调
+                'onMessage' => function ($connection, $data) {
+                    $connection->send("hello world");
+                }
+            ]
+        ],
+        // 自定义 websocket 服务
         'websocket' => [
             // 进程类型(Workerman|Gateway|Register|Business)
             'type'    => 'Workerman',
@@ -159,7 +184,7 @@ composer remove zoujingli/think-plugs-worker
 ### 守护方式运行  -d
 ### 指定监听域名  --host 127.0.0.1
 ### 指定监听端口  --port 2346 
-### 启动指定服务  --custom text
+### 启动指定服务  --custom websocket
 
 # 启动默认 Http 服务
 php think xadmin:worker
@@ -181,6 +206,8 @@ http://localhost:2346
 默认使用 `Workerman` 工作方式，如果需要使用 `Gateway`、`Business` 方式，需要安装 `GatewayWorker` 组件。
 
 安装 `GatewayWorker` 的指令如下：
+
+注意：启用 GatewayWorker 需要单独启动三个进程，分别是 `Register`、`Gateway`、`Business`，中间需要 `Register` 进程连接。
 
 ```shell
 # 安装 GatewayWorker 组件
