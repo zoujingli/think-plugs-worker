@@ -22,7 +22,6 @@ namespace plugin\worker\command;
 use GatewayWorker\BusinessWorker;
 use GatewayWorker\Gateway;
 use GatewayWorker\Register;
-use plugin\worker\Server;
 use plugin\worker\support\HttpServer;
 use think\admin\Command;
 use think\console\Input;
@@ -176,15 +175,25 @@ class Worker extends Command
 
     /**
      * 创建自定义服务类
-     * @template T of Server
-     * @param class-string<T> $class
-     * @return T|false|Server
+     * @param string $class
+     * @return false|Workerman|Gateway|Register|BusinessWorker
      */
     protected function startServer(string $class)
     {
         if (class_exists($class)) {
-            if (($worker = new $class) instanceof Server) return $worker;
-            $this->output->writeln("<error>Worker Server Class Must extends \\plugin\\worker\\Server</error>");
+            if (class_exists('Workerman\Worker')) {
+                if (($worker = new $class) instanceof Workerman) return $worker;
+            }
+            if (class_exists('GatewayWorker\Gateway')) {
+                if (($worker = new $class) instanceof Gateway) return $worker;
+            }
+            if (class_exists('GatewayWorker\Register')) {
+                if (($worker = new $class) instanceof Register) return $worker;
+            }
+            if (class_exists('GatewayWorker\BusinessWorker')) {
+                if (($worker = new $class) instanceof BusinessWorker) return $worker;
+            }
+            $this->output->writeln("<error>Worker Must extends Server|Gateway|Register|BusinessWorker</error>");
         } else {
             $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
         }
