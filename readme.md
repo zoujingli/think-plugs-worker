@@ -32,31 +32,33 @@ composer remove zoujingli/think-plugs-worker
 配置文件 `config/worker.php`
 
 ```php
-[
+return [
     // 服务监听地址
-    'host'     => '127.0.0.1',
+    'host' => '127.0.0.1',
     // 服务监听端口
-    'port'     => 2346,
+    'port' => 2346,
     // 套接字上下文选项
-    'context'  => [],
+    'context' => [],
     // 高级自定义服务类
-    'classes'  => '',
+    'classes' => '',
     // 消息请求回调处理
     'callable' => null,
     // 服务进程参数配置
-    'worker'   => [
-        'name'  => 'ThinkAdmin',
+    'worker' => [
+        // 进程名称
+        "name"  => 'ThinkAdmin',
+        // 进程数量
         'count' => 4,
     ],
     // 监控文件变更重载
-    'files'    => [
+    'files' => [
         // 监控检测间隔（单位秒，零不监控）
         'time' => 3,
         // 文件监控目录（默认监控 app 目录）
         'path' => [],
     ],
     // 监控内存超限重载
-    'memory'   => [
+    'memory' => [
         // 监控检测间隔（单位秒，零不监控）
         'time'  => 60,
         // 限制内存大小（可选单位有 G M K ）
@@ -67,7 +69,7 @@ composer remove zoujingli/think-plugs-worker
         // 自定义 text 服务
         'text' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Workerman',
+            'type' => 'Workerman',
             // 监听地址(<协议>://<地址>:<端口>)
             'listen'  => 'text://0.0.0.0:8685',
             // 高级自定义服务类
@@ -92,15 +94,15 @@ composer remove zoujingli/think-plugs-worker
         // 自定义 websocket 服务
         'websocket' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Workerman',
+            'type' => 'Workerman',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'websocket://0.0.0.0:8686',
+            'listen' => 'websocket://0.0.0.0:8686',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
-            'worker'  => [
+            'worker' => [
                 //'name' => 'TextTest',
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
@@ -115,19 +117,21 @@ composer remove zoujingli/think-plugs-worker
             ]
         ],
         // 自定义 Gateway 服务
-        'gateway' => [
-            // 进程类型(Workerman|Gateway|Register|Business) 
-            'type'    => 'Gateway',
+        'gateway'   => [
+            // 进程类型(Workerman|Gateway|Register|Business)
+            'type' => 'Gateway',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'websocket://0.0.0.0:8689',
+            'listen' => 'websocket://0.0.0.0:8689',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
             'worker'  => [
-                // 'name' => 'WebsocketTest',
-                // "count" => 4,
+                // 进程名称
+                "name" => 'Gateway',
+                // 进程数量
+                // "count"  => 4,
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
                 // onConnect => [class,method]
@@ -148,31 +152,64 @@ composer remove zoujingli/think-plugs-worker
             ]
         ],
         // 自定义 Register 服务
-        'reigster' => [
-            // 进程类型(Workerman|Gateway|Register|Business) 
-            'type'    => 'Register',
+        'register' => [
+            // 进程类型(Workerman|Gateway|Register|Business)
+            'type' => 'Register',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'text://0.0.0.0:1236',
+            'listen' => 'text://0.0.0.0:1236',
         ],
-         // 自定义 Business 服务
-         'business' => [
-            // 进程类型(Workerman|Gateway|Register|Business) 
-            'type'    => 'Business',
+        // 自定义 Business 服务
+        'business' => [
+            // 进程类型(Workerman|Gateway|Register|Business)
+            'type' => 'Business',
             // 高级自定义服务类
             'classes' => '',
-             // 服务进程参数配置
-            'worker' => [
-                "name"  => 'Business',
-                // "count" => 4,
+            // 服务进程参数配置
+            'worker'  => [
+                // 进程名称
+                "name" => 'Business',
+                // 进程数量
+                "count" => 4,
                 // 注册服务地址
                 "registerAddress" => '0.0.0.0:1236',
+                // 业务处理类
+                "eventHandler" => Events::class,
                 // "onWorkerStart" => [class, method],
                 // "onWorkerStop" => [class, method],
-                // "eventHandler" => "\my\namespace\MyEvent"
-            ]       
+            ]
         ],
     ],
 ];
+
+/**
+ * 业务处理类
+ * @class Events
+ */
+class Events
+{
+
+    /**
+     * 业务进程启动
+     * @param $businessWorker
+     * @return void
+     */
+    public static function onWorkerStart($businessWorker)
+    {
+        echo "WorkerStart\n";
+    }
+
+    /**
+     * 有消息时触发该方法
+     * @param int $client_id 发消息的client_id
+     * @param mixed $message 消息
+     * @return void
+     */
+    public static function onMessage($client_id, $message)
+    {
+        // 群聊，转发请求给其它所有的客户端
+        return \GatewayWorker\Gateway::sendToAll($message);
+    }
+}
 ```
 
 ### 使用方法

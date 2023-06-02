@@ -31,7 +31,7 @@ use think\console\Output;
 use Workerman\Worker as Workerman;
 
 /**
- * Worker
+ * Worker Command
  * @class Worker
  * @package think\admin\server\command
  */
