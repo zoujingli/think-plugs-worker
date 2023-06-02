@@ -21,6 +21,7 @@ namespace plugin\worker\command;
 
 use GatewayWorker\BusinessWorker;
 use GatewayWorker\Gateway;
+use GatewayWorker\Register;
 use plugin\worker\Server;
 use plugin\worker\support\HttpServer;
 use think\admin\Command;
@@ -151,13 +152,17 @@ class Worker extends Command
      * @param string $type
      * @param string $listen
      * @param array $context
-     * @return BusinessWorker|Gateway|Workerman
+     * @return BusinessWorker|Register|Gateway|Workerman
      */
     protected function makeWorker(string $type, string $listen, array $context = [])
     {
         switch (strtolower($type)) {
             case 'gateway':
                 if (class_exists('GatewayWorker\Gateway')) return new Gateway($listen, $context);
+                $this->output->error("请执行 composer require workerman/gateway-worker 安装 GatewayWorker 组件");
+                exit(1);
+            case 'register':
+                if (class_exists('GatewayWorker\Register')) return new Register($listen, $context);
                 $this->output->error("请执行 composer require workerman/gateway-worker 安装 GatewayWorker 组件");
                 exit(1);
             case 'business':
