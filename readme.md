@@ -11,6 +11,9 @@
 
 代码主仓库放在 **Gitee**，**Github** 仅为镜像仓库用于发布 **Composer** 包。
 
+**注意：** 此工具默认根配置参数是启动 **http** 服务，用来运行 **ThinkAdmin v6** 程序。
+如果需要使用其他协议，请使用并修改 `customs` 配置或追加配置，并通过指定 `--custom name` 配置名来启动对应服务进程。
+
 ### 安装插件
 
 ```shell
@@ -34,50 +37,50 @@ composer remove zoujingli/think-plugs-worker
 ```php
 return [
     // 服务监听地址
-    'host'     => '127.0.0.1',
+    'host' => '127.0.0.1',
     // 服务监听端口
-    'port'     => 2346,
+    'port' => 2346,
     // 套接字上下文选项
-    'context'  => [],
+    'context' => [],
     // 高级自定义服务类
-    'classes'  => '',
+    'classes' => '',
     // 消息请求回调处理
     'callable' => null,
     // 服务进程参数配置
-    'worker'   => [
+    'worker' => [
         // 进程名称
-        "name"  => 'ThinkAdmin',
+        "name" => 'ThinkAdmin',
         // 进程数量
         'count' => 4,
     ],
     // 监控文件变更重载
-    'files'    => [
+    'files' => [
         // 监控检测间隔（单位秒，零不监控）
         'time' => 3,
         // 文件监控目录（默认监控 app 目录）
         'path' => [],
     ],
     // 监控内存超限重载
-    'memory'   => [
+    'memory' => [
         // 监控检测间隔（单位秒，零不监控）
-        'time'  => 60,
+        'time' => 60,
         // 限制内存大小（可选单位有 G M K ）
         'limit' => '1G'
     ],
     // 自定义服务配置（可选）
-    'customs'  => [
+    'customs' => [
         // 自定义 text 服务
-        'text'      => [
+        'text' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Workerman',
+            'type' => 'Workerman',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'text://0.0.0.0:8685',
+            'listen' => 'text://0.0.0.0:8685',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
-            'worker'  => [
+            'worker' => [
                 //'name' => 'TextTest',
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
@@ -94,15 +97,15 @@ return [
         // 自定义 websocket 服务
         'websocket' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Workerman',
+            'type' => 'Workerman',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'websocket://0.0.0.0:8686',
+            'listen' => 'websocket://0.0.0.0:8686',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
-            'worker'  => [
+            'worker' => [
                 //'name' => 'TextTest',
                 // onWorkerStart => [class,method]
                 // onWorkerReload => [class,method]
@@ -117,65 +120,73 @@ return [
             ]
         ],
         // 自定义 Gateway 服务
-        'gateway'   => [
+        'gateway' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Gateway',
+            'type' => 'Gateway',
             // 监听地址(<协议>://<地址>:<端口>)
-            'listen'  => 'websocket://127.0.0.1:8689',
+            'listen' => 'websocket://127.0.0.1:8689',
             // 高级自定义服务类
             'classes' => '',
             // 套接字上下文选项
             'context' => [],
             // 服务进程参数配置
-            'worker'  => [
+            'worker' => [
                 // 进程名称
-                "name"                 => 'Gateway',
-                'pingInterval'         => 10,
-                'pingNotResponseLimit' => 0,
-                'pingData'             => '{"type":"ping"}',
+                "name" => 'Gateway',
                 // 进程数量
-                // "count"  => 4,
-                "lanIp"                => '127.0.0.1',
-                "startPort"            => 2000,
-                // 注册服务地址
-                "registerAddress"      => '127.0.0.1:1236',
-                "onWorkerStart"        => function () {
+                 "count" => 4,
+                // 心跳发送时间，针对客户端
+                'pingInterval' => 10,
+                // 心跳容错次数，针对客户端
+                'pingNotResponseLimit' => 0,
+                // 心跳包内容，针对客户端
+                'pingData' => '{"type":"ping"}',
+                 // 服务器内网IP
+                "lanIp" => '127.0.0.1',
+                // Business 回复 Gateway 端口
+                "startPort" => 2000,
+               // 注册服务地址，与 Register 进程对应
+                "registerAddress" => '127.0.0.1:1236',
+                // 进程启动回调
+                "onWorkerStart" => function () {
                     echo "Gateway onWorkerStart" . PHP_EOL;
                 },
-                "onWorkerStop"         => function () {
+                 // 进程停止回调
+                "onWorkerStop" => function () {
                     echo "Gateway onWorkerStop" . PHP_EOL;
                 }
             ]
         ],
         // 自定义 Register 服务
-        'register'  => [
+        'register' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'   => 'Register',
+            'type' => 'Register',
             // 监听地址(<协议>://<地址>:<端口>)
+            // 注意：别改这里的协议，只支持 text 协议
             'listen' => 'text://127.0.0.1:1236'
         ],
         // 自定义 Business 服务
-        'business'  => [
+        'business' => [
             // 进程类型(Workerman|Gateway|Register|Business)
-            'type'    => 'Business',
+            'type' => 'Business',
             // 高级自定义服务类
             'classes' => '',
             // 服务进程参数配置
-            'worker'  => [
+            'worker' => [
                 // 进程名称
-                "name"            => 'Business',
+                "name" => 'Business',
                 // 进程数量
-                "count"           => 4,
-                // 注册服务地址
+                "count" => 4,
+                // 注册服务地址，与 Register 进程对应
                 "registerAddress" => '127.0.0.1:1236',
-                // "onWorkerStart" => [class, method],
-                // "onWorkerStop" => [class, method],
                 // 业务处理类
-                "eventHandler"    => Events::class,
-                "onWorkerStart"   => function () {
+                "eventHandler" => Events::class,
+                // 进程启动回调
+                "onWorkerStart" => function () {
                     echo "Business onWorkerStart" . PHP_EOL;
                 },
-                "onWorkerStop"    => function () {
+                // 进程停止回调
+                "onWorkerStop" => function () {
                     echo "Business onWorkerStart" . PHP_EOL;
                 }
             ]
@@ -219,20 +230,26 @@ class Events
 在命令行启动服务端
 
 ```shell
-#========= 启动参数配置 =========#
+#========= 启动参数配置 =========
 ### 守护方式运行  -d
 ### 指定监听域名  --host 127.0.0.1
 ### 指定监听端口  --port 2346 
 ### 启动指定服务  --custom websocket
 
-# 启动默认 Http 服务
+# 通过 Workerman 方式，启动默认 Http 服务
 php think xadmin:worker
 
-# 启动自定义 text 服务，注意 text 为 customs 配置项
+# 通过 Workerman 方式，启动自定义 text 服务，注意 text 为 customs 配置项
 php think xadmin:worker --custom text
 
-# 启动自定义 WebSocket 服务，注意 websocket 为 customs 配置项
+# 通过 Workerman 方式，启动自定义 WebSocket 服务，注意 websocket 为 customs 配置项
 php think xadmin:worker --custom websocket
+
+# 通过 Gateway 方式，需要同时启动三个进程，另外还需要安装 workerman/gateway-worker 依赖包。
+# 具体业务处理逻辑写在 business 绑定的 Events 中，了解更新多配置请阅读 Workerman 官方文档。
+php think xadmin:worker --custom register
+php think xadmin:worker --custom gateway
+php think xadmin:worker --custom business
 
 ```
 
