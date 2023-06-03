@@ -104,19 +104,21 @@ class Worker extends Command
                 $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
             }
         } else {
-            if (empty($this->config['listen'])) {
-                $listen = "websocket://{$host}:{$port}";
-            } elseif (is_array($attr = parse_url($this->config['listen']))) {
-                $attr = ['port' => $port, 'host' => $host] + $attr + ['scheme' => 'websocket'];
-                $listen = "{$attr['scheme']}://{$attr['host']}:{$attr['port']}";
-            } else {
-                $listen = $this->config['listen'];
+            if (strtolower($this->config['type']) !== 'business') {
+                if (empty($this->config['listen'])) {
+                    $listen = "websocket://{$host}:{$port}";
+                } elseif (is_array($attr = parse_url($this->config['listen']))) {
+                    $attr = ['port' => $port, 'host' => $host] + $attr + ['scheme' => 'websocket'];
+                    $listen = "{$attr['scheme']}://{$attr['host']}:{$attr['port']}";
+                } else {
+                    $listen = $this->config['listen'];
+                }
+                if ('start' == $action) {
+                    $first = strstr($listen, ':', true) ?: 'unknow';
+                    $output->writeln("Starting Workerman {$first} server...");
+                }
             }
-            if ('start' == $action) {
-                $first = strstr($listen, ':', true) ?: 'unknow';
-                $output->writeln("Starting Workerman {$first} server...");
-            }
-            $worker = $this->makeWorker($this->config['type'] ?? '', $listen, $this->config['context'] ?? []);
+            $worker = $this->makeWorker($this->config['type'] ?? '', $listen ?? '', $this->config['context'] ?? []);
         }
 
         // 守护进程模式
