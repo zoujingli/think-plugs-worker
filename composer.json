@@ -13,8 +13,8 @@
   "require": {
     "php": ">=7.1",
     "workerman/workerman": "^4.1",
-    "zoujingli/think-install": "^1.0||dev-master",
-    "zoujingli/think-library": "^6.1||v6.0.x-dev"
+    "zoujingli/think-install": "^1.0|@dev",
+    "zoujingli/think-library": "^6.1|@dev"
   },
   "autoload": {
     "psr-4": {
