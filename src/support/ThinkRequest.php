@@ -30,8 +30,37 @@ use Workerman\Worker;
  */
 class ThinkRequest extends Request
 {
+    /**
+     * 重置属性规则
+     * @var array
+     */
+    private static $defaultProps = [
+        'url'        => '',
+        'param'      => [],
+        'realIP'     => '',
+        'baseUrl'    => '',
+        'content'    => null,
+        'secureKey'  => null,
+        'mergeParam' => false,
+    ];
+
+    /**
+     * 设置重置规格
+     * @param array $props
+     * @return void
+     */
+    public static function setDefaultProps(array $props = [])
+    {
+        self::$defaultProps = $props;
+    }
+
     public function withWorkerRequest(TcpConnection $connection, WorkerRequest $request): ThinkRequest
     {
+        // 初始化变量
+        foreach (self::$defaultProps as $k => $v) {
+            if (isset($this->$k)) $this->$k = $v;
+        }
+        // 赋值新的变量
         $this->get = $request->get();
         $this->file = $request->file() ?? [];
         $this->post = $request->post();

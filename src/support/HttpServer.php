@@ -22,6 +22,7 @@ use plugin\worker\Monitor;
 use plugin\worker\Server;
 use think\admin\service\ProcessService;
 use think\admin\service\RuntimeService;
+use think\Request;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
 use Workerman\Protocols\Http\Response as WorkerResponse;
@@ -68,10 +69,15 @@ class HttpServer extends Server
      */
     public function onWorkerStart(Worker $worker)
     {
-        // 初始化应用
+        // 创建基础应用
         $this->app = new App($this->root);
         $this->app->bind('think\Cookie', ThinkCookie::class);
         $this->app->bind('think\Request', ThinkRequest::class);
+
+        // 设置初始化属性
+        ThinkRequest::setDefaultProps((new \ReflectionClass(Request::class))->getDefaultProperties());
+
+        // 初始化运行环境
         RuntimeService::init($this->app)->initialize();
 
         // 初始化会话
