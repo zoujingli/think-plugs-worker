@@ -38,9 +38,9 @@
       "init": {
         "stc/worker.php": "config/worker.php"
       },
-      "event": [
-        "plugin\\worker\\Event"
-      ]
+      "event": {
+        "src/Script.php": "plugin\\worker\\Script"
+      }
     }
   },
   "minimum-stability": "dev",

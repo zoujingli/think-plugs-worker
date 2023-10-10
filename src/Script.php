@@ -23,7 +23,7 @@ namespace plugin\worker;
  * @class Event
  * @package plugin\worker
  */
-abstract class Event
+abstract class Script
 {
     public static function onRemove()
     {
