@@ -260,7 +260,7 @@ abstract class Monitor
                 continue;
             }
             // check mtime
-            if ($lastMtime < $file->getMTime() && in_array($file->getExtension(), $extensions, true)) {
+            if ($lastMtime < $file->getMTime() && (in_array('*', $extensions) || in_array($file->getExtension(), $extensions, true))) {
                 $var = 0;
                 exec(ProcessService::php("-l {$file}"), $out, $var);
                 if ($var) {

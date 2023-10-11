@@ -96,11 +96,13 @@ class Worker extends Command
             $worker = new HttpServer($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
             $worker->setRoot($this->app->getRootPath());
             if (!$this->process->isWin()) {
-                // 设置文件变更及内存超限监控管理
-                if (empty($this->config['files']['path'])) {
-                    $this->config['files']['path'] = [$this->app->getBasePath(), $this->app->getConfigPath()];
-                }
-                $worker->setMonitorFiles(intval($this->config['files']['time'] ?? 0), $this->config['files']['path']);
+                // 设置热更新监听文件后缀
+                if (empty($this->config['files']['exts'])) $this->config['files']['exts'] = ['*'];
+                // 设置热更新监听文件目录
+                if (empty($this->config['files']['path'])) $this->config['files']['path'] = [
+                    syspath('vendor'), $this->app->getBasePath(), $this->app->getConfigPath(),
+                ];
+                $worker->setMonitorFiles(intval($this->config['files']['time'] ?? 0), $this->config['files']['path'], $this->config['files']['exts']);
                 $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
             }
         } else {
