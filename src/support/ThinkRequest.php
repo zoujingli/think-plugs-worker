@@ -31,35 +31,27 @@ use Workerman\Worker;
 class ThinkRequest extends Request
 {
     /**
-     * 重置属性规则
-     * @var array
-     */
-    private static $defaultProps = [
-        'url'        => '',
-        'param'      => [],
-        'realIP'     => '',
-        'baseUrl'    => '',
-        'content'    => null,
-        'secureKey'  => null,
-        'mergeParam' => false,
-    ];
-
-    /**
-     * 设置重置规格
-     * @param array $props
+     * 初始化属性
      * @return void
      */
-    public static function setDefaultProps(array $props = [])
+    public function reset()
     {
-        self::$defaultProps = $props;
+        static $props = [];
+        if (empty($props)) $props = (new \ReflectionClass(Request::class))->getDefaultProperties();
+        foreach ($props as $k => $v) isset($this->$k) && $this->$k = $v;
     }
 
+    /**
+     * WorkermanRequest 转换为 ThinkRequest 对象
+     * @param \Workerman\Connection\TcpConnection $connection
+     * @param \Workerman\Protocols\Http\Request $request
+     * @return \plugin\worker\support\ThinkRequest
+     */
     public function withWorkerRequest(TcpConnection $connection, WorkerRequest $request): ThinkRequest
     {
         // 初始化变量
-        foreach (self::$defaultProps as $k => $v) {
-            if (isset($this->$k)) $this->$k = $v;
-        }
+        $this->reset();
+
         // 赋值新的变量
         $this->get = $request->get();
         $this->file = $request->file() ?? [];

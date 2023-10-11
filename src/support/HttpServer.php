@@ -22,7 +22,6 @@ use plugin\worker\Monitor;
 use plugin\worker\Server;
 use think\admin\service\ProcessService;
 use think\admin\service\RuntimeService;
-use think\Request;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
 use Workerman\Protocols\Http\Response as WorkerResponse;
@@ -74,9 +73,6 @@ class HttpServer extends Server
         $this->app->bind('think\Cookie', ThinkCookie::class);
         $this->app->bind('think\Request', ThinkRequest::class);
 
-        // 设置初始化属性
-        ThinkRequest::setDefaultProps((new \ReflectionClass(Request::class))->getDefaultProperties());
-
         // 初始化运行环境
         RuntimeService::init($this->app)->initialize();
 
@@ -96,8 +92,8 @@ class HttpServer extends Server
         });
 
         // 设置文件变化及内存超限监控管理
-        if (!ProcessService::isWin() && 0 == $worker->id && $this->monitor) {
-            Monitor::listen($this->monitor['files_path'] ?? []);
+        if (ProcessService::isUnix() && 0 == $worker->id && $this->monitor) {
+            Monitor::listen($this->monitor['files_path'] ?? [], $this->monitor['files_exts'] ?? ['*']);
             Monitor::enableFilesMonitor($this->monitor['files_interval'] ?? 0);
             Monitor::enableMemoryMonitor($this->monitor['memory_interval'] ?? 0, $this->monitor['memory_limit'] ?? null);
         }
@@ -148,12 +144,14 @@ class HttpServer extends Server
     /**
      * 设置文件监控配置
      * @param integer $interval
-     * @param array $path
+     * @param array $path 监听目录
+     * @param array $exts 文件后缀
      * @return void
      */
-    public function setMonitorFiles(int $interval = 2, array $path = [])
+    public function setMonitorFiles(int $interval = 2, array $path = [], array $exts = ['*'])
     {
         $this->monitor['files_path'] = $path;
+        $this->monitor['files_exts'] = $exts;
         $this->monitor['files_interval'] = $interval;
     }
 
