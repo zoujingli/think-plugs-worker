@@ -73,6 +73,11 @@ class HttpServer extends Server
         $this->app->bind('think\Cookie', ThinkCookie::class);
         $this->app->bind('think\Request', ThinkRequest::class);
 
+        // 抢占必需替换的类名，并优先加载进内存
+        if (!class_exists('think\response\File', false)) {
+            class_alias(ThinkResponseFile::class, 'think\response\File');
+        }
+
         // 初始化运行环境
         RuntimeService::init($this->app)->initialize();
 

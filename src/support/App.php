@@ -60,7 +60,7 @@ class App extends \think\App
             $response->withBody(ob_get_clean() . $thinkres->getContent());
             $response->withStatus($thinkres->getCode()) && $this->cookie->save();
             $response->withHeaders($thinkres->getHeader() + ['Server' => 'x-server']);
-            if (strtolower($request->header('connection')) === 'keep-alive') {
+            if (strtolower($request->header('connection', '')) === 'keep-alive') {
                 $connection->send($response);
             } else {
                 $connection->close($response);
