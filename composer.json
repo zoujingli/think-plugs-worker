@@ -11,7 +11,7 @@
     }
   ],
   "require": {
-    "php": ">=7.1",
+    "php": ">7.1",
     "workerman/workerman": "^4.1",
     "zoujingli/think-install": "^1.0|@dev",
     "zoujingli/think-library": "^6.1|@dev"
@@ -30,14 +30,11 @@
     "config": {
       "type": "service",
       "name": "基于 Workerman 的通信服务",
-      "icon": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
       "cover": "https://static.cdn.cuci.cc/bd/2a2f272511ee7216cdec6cf3843a38.png",
+      "document": "https://thinkadmin.top/plugin/think-plugs-worker.html",
       "license": [
         "Apache-2.0"
-      ],
-      "homepage": "https://thinkadmin.top",
-      "document": "https://thinkadmin.top/plugin/think-plugs-worker.html",
-      "description": "基于 Workerman 的网络通信服务，可定制自由开发各种协议的网络服务"
+      ]
     },
     "plugin": {
       "init": {
