@@ -25,12 +25,12 @@ use Workerman\Protocols\Http\Response as WorkerResponse;
 
 /**
  * 自定义基础类
- * @class App
+ * @class ThinkApp
  * @package plugin\worker\support
  * @property ThinkCookie $cookie
  * @property ThinkRequest $request
  */
-class App extends \think\App
+class ThinkApp extends \think\App
 {
 
     /**

@@ -29,14 +29,11 @@ use Workerman\Worker;
 
 /**
  * 资源监控管理器
- * Class Monitor
+ * @class Monitor
  * @package plugin\worker
  */
 abstract class Monitor
 {
-
-    const defaultMaxMemory = '1G';
-
     /**
      * 监控目录
      * @var array
@@ -44,15 +41,21 @@ abstract class Monitor
     private static $paths = [];
 
     /**
+     * 内存限制
+     * @var string
+     */
+    private const defaultMaxMemory = '1G';
+
+    /**
      * 暂停锁定标记
      * @var string
      */
     private static $lockFile;
-
     private static $filesTimerId = -1;
     private static $memoryTimerId = -1;
 
     /**
+     * 监听锁定标记
      * @return string
      */
     private static function tag(): string
@@ -61,7 +64,7 @@ abstract class Monitor
     }
 
     /**
-     * Pause monitor
+     * Pause Monitor
      * @return void
      */
     public static function pause()

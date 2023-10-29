@@ -80,6 +80,7 @@ class Worker extends Command
             if (!$this->unixNext($custom, $action, $port)) return;
         }
 
+        // 设置环境运行文件
         if (empty($this->config['worker']['logFile'])) {
             $this->config['worker']['logFile'] = syspath("safefile/worker/worker_{$port}.log");
         }
@@ -90,9 +91,7 @@ class Worker extends Command
         is_dir($dir = dirname($this->config['worker']['logFile'])) or mkdir($dir, 0777, true);
 
         if ($custom === 'default') {
-            if ('start' == $action) {
-                $output->writeln('Starting Workerman http server...');
-            }
+            'start' == $action && $output->writeln('Starting Workerman http server...');
             $worker = new HttpServer($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
             $worker->setRoot($this->app->getRootPath());
             if (!$this->process->isWin()) {
@@ -116,8 +115,7 @@ class Worker extends Command
                     $listen = $this->config['listen'];
                 }
                 if ('start' == $action) {
-                    $first = strstr($listen, ':', true) ?: 'unknow';
-                    $output->writeln("Starting Workerman {$first} server...");
+                    $output->writeln(sprintf("Starting Workerman %v server...", strstr($listen, ':', true) ?: 'unknow'));
                 }
             }
             $worker = $this->makeWorker($this->config['type'] ?? '', $listen ?? '', $this->config['context'] ?? []);

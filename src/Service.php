@@ -27,7 +27,7 @@ class Service extends Plugin
      * 定义插件名称
      * @var string
      */
-    protected $appName = '基于 Workerman 的通信服务';
+    protected $appName = '网络服务';
 
     /**
      * 定义安装包名

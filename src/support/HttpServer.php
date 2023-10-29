@@ -36,7 +36,7 @@ use Workerman\Worker;
  */
 class HttpServer extends Server
 {
-    /** @var App */
+    /** @var ThinkApp */
     protected $app;
 
     /** @var string */
@@ -69,7 +69,7 @@ class HttpServer extends Server
     public function onWorkerStart(Worker $worker)
     {
         // 创建基础应用
-        $this->app = new App($this->root);
+        $this->app = new ThinkApp($this->root);
         $this->app->bind('think\Cookie', ThinkCookie::class);
         $this->app->bind('think\Request', ThinkRequest::class);
 

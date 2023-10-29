@@ -7,11 +7,13 @@
 [![PHP Version](https://doc.thinkadmin.top/static/icon/php-7.1.svg)](https://thinkadmin.top)
 [![License](https://poser.pugx.org/zoujingli/think-plugs-worker/license)](https://gitee.com/zoujingli/think-plugs-worker/blob/master/license)
 
-基于 **Workerman** 的 **HttpServer** 插件 ，基于内存方案快速运行 Web 及其他通信协议服务！
+基于 **Workerman 4.x** 且支持多种通信协议的基础插件。
+
+**提示：** 默认支持以 HTTP 方式直接启动 ThinkAdmin 项目，无需配置 Nginx 或 Apache 环境，访问速度提升 N 倍。
 
 代码主仓库放在 **Gitee**，**Github** 仅为镜像仓库用于发布 **Composer** 包。
 
-**注意：** 此工具支持 `Workerman` 或 `Gateway` 两种运行方式，默认只安装 `Workerman` 组件，如果需要使用 `Gateway` 组件，需要另行安装。
+**注意：** 该插件支持 `Workerman` 或 `Gateway` 两种运行方式，默认只安装了 `Workerman` 组件，如果需要使用 `Gateway` 组件，请另行安装。
 配置文件的根配置参数是启动 **http** 服务进程，用来运行 **ThinkAdmin v6** 程序。
 如果需要使用其他协议，请使用并修改 `customs` 配置或追加配置，并通过指定 `--custom name` 配置名来启动对应服务进程。
 

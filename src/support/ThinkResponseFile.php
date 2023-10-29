@@ -23,7 +23,9 @@ use think\exception\HttpResponseException;
 use think\Response;
 
 /**
- * File Response
+ * Think File Response
+ * @class ThinkResponseFile
+ * @package plugin\worker\support
  */
 class ThinkResponseFile extends Response
 {
@@ -56,11 +58,11 @@ class ThinkResponseFile extends Response
             $name = !$this->isContent ? pathinfo($data, PATHINFO_BASENAME) : '';
         }
         if ($this->isContent) {
-            $mimeType = $this->mimeType;
             $size = strlen($data);
+            $mimeType = $this->mimeType;
         } else {
-            $mimeType = $this->getMimeType($data);
             $size = filesize($data);
+            $mimeType = $this->getMimeType($data);
         }
         $this->header['Pragma'] = 'public';
         $this->header['Content-Type'] = $mimeType ?: 'application/octet-stream';
@@ -81,7 +83,6 @@ class ThinkResponseFile extends Response
      */
     public function send(): void
     {
-        // 处理输出数据
         $this->getContent();
         throw new HttpResponseException($this);
     }
