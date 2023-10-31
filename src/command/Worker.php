@@ -62,7 +62,11 @@ class Worker extends Command
         // 执行自定义服务
         if (!empty($this->config['classes'])) {
             foreach ((array)$this->config['classes'] as $class) {
-                $this->startServer($class);
+                if (class_exists($class)) {
+                    new $class;
+                } else {
+                    $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>")
+                }
             }
             Workerman::runAll();
             return;
@@ -173,33 +177,6 @@ class Worker extends Command
             default:
                 return new Workerman($listen, $context);
         }
-    }
-
-    /**
-     * 创建自定义服务类
-     * @param string $class
-     * @return false|Workerman|Gateway|Register|BusinessWorker
-     */
-    protected function startServer(string $class)
-    {
-        if (class_exists($class)) {
-            if (class_exists('Workerman\Worker')) {
-                if (($worker = new $class) instanceof Workerman) return $worker;
-            }
-            if (class_exists('GatewayWorker\Gateway')) {
-                if (($worker = new $class) instanceof Gateway) return $worker;
-            }
-            if (class_exists('GatewayWorker\Register')) {
-                if (($worker = new $class) instanceof Register) return $worker;
-            }
-            if (class_exists('GatewayWorker\BusinessWorker')) {
-                if (($worker = new $class) instanceof BusinessWorker) return $worker;
-            }
-            $this->output->writeln("<error>Worker Must extends Server|Gateway|Register|BusinessWorker</error>");
-        } else {
-            $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
-        }
-        return false;
     }
 
     /**
