@@ -38,6 +38,7 @@ use Workerman\Worker as Workerman;
 class Worker extends Command
 {
     protected $config = [];
+    protected $classes = [];
 
     public function configure()
     {
@@ -59,25 +60,12 @@ class Worker extends Command
             return;
         }
 
-        // 执行自定义服务
-        if (!empty($this->config['classes'])) {
-            foreach ((array)$this->config['classes'] as $class) {
-                if (class_exists($class)) {
-                    new $class;
-                } else {
-                    $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
-                }
-            }
-            Workerman::runAll();
-            return;
-        }
-
         // 获取基本运行参数
         $host = $this->getHost();
         $port = $this->getPort();
         $action = $input->getArgument('action');
 
-        // 运行环境初始化处理
+        // 初始化运行环境参数
         if ($this->process->iswin()) {
             if (!$this->winNext($custom, $action, $port)) return;
         } else {
@@ -94,11 +82,37 @@ class Worker extends Command
         is_dir($dir = dirname($this->config['worker']['pidFile'])) or mkdir($dir, 0777, true);
         is_dir($dir = dirname($this->config['worker']['logFile'])) or mkdir($dir, 0777, true);
 
+        // 静态属性设置
+        foreach ($this->config['worker'] ?? [] as $name => $value) {
+            if (in_array($name, ['daemonize', 'stdoutFile', 'pidFile', 'logFile'])) {
+                Workerman::${$name} = $value;
+                unset($this->config['worker'][$name]);
+            }
+        }
+
+        // 守护进程模式
+        if ($this->input->hasOption('daemon')) {
+            Workerman::$daemonize = true;
+        }
+
+        // 执行自定义服务
+        if (!empty($this->config['classes'])) {
+            foreach ((array)$this->config['classes'] as $class) {
+                if (class_exists($class)) {
+                    $this->classes[] = new $class;
+                } else {
+                    $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
+                }
+            }
+            Workerman::runAll();
+            return;
+        }
+
         if ($custom === 'default') {
             'start' == $action && $output->writeln('Starting Workerman http server...');
             $worker = new HttpServer($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
             $worker->setRoot($this->app->getRootPath());
-            if (!$this->process->isWin()) {
+            if ($this->process->isUnix()) {
                 // 设置热更新监听文件后缀
                 if (empty($this->config['files']['exts'])) $this->config['files']['exts'] = ['*'];
                 // 设置热更新监听文件目录
@@ -123,19 +137,6 @@ class Worker extends Command
                 }
             }
             $worker = $this->makeWorker($this->config['type'] ?? '', $listen ?? '', $this->config['context'] ?? []);
-        }
-
-        // 守护进程模式
-        if ($this->input->hasOption('daemon')) {
-            Workerman::$daemonize = true;
-        }
-
-        // 静态属性设置
-        foreach ($this->config['worker'] ?? [] as $name => $value) {
-            if (in_array($name, ['daemonize', 'stdoutFile', 'pidFile', 'logFile'])) {
-                Workerman::${$name} = $value;
-                unset($this->config['worker'][$name]);
-            }
         }
 
         // 设置属性参数
@@ -186,7 +187,7 @@ class Worker extends Command
      * @param integer $port
      * @return boolean
      */
-    protected function winNext(string $custom, string $action, int $port): bool
+    private function winNext(string $custom, string $action, int $port): bool
     {
         if (!in_array($action, ['start', 'stop', 'status'])) {
             $this->output->writeln("<error>Invalid argument action:{$action}, Expected start|stop|status for Windows .</error>");
@@ -235,7 +236,7 @@ class Worker extends Command
      * @param integer $port
      * @return boolean
      */
-    protected function unixNext(string $custom, string $action, int $port): bool
+    private function unixNext(string $custom, string $action, int $port): bool
     {
         if (!in_array($action, ['start', 'stop', 'reload', 'restart', 'status', 'connections'])) {
             $this->output->writeln("<error>Invalid argument action:{$action}, Expected start|stop|restart|reload|status|connections .</error>");

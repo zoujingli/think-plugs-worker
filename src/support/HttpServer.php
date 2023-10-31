@@ -48,10 +48,11 @@ class HttpServer extends Server
     /** @var callable */
     protected $callable;
 
-    public function __construct(string $host, int $port, array $context = [], ?callable $callable = null)
+    public function __construct(string $host = '127.0.0.1', int $port = 2346, array $context = [], ?callable $callable = null)
     {
         $this->port = $port;
         $this->host = $host;
+        $this->root = dirname(__DIR__, 4);
         $this->context = $context;
         $this->protocol = 'http';
         $this->callable = $callable;

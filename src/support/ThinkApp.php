@@ -18,6 +18,7 @@ declare (strict_types=1);
 
 namespace plugin\worker\support;
 
+use think\App;
 use think\exception\Handle;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
@@ -30,7 +31,7 @@ use Workerman\Protocols\Http\Response as WorkerResponse;
  * @property ThinkCookie $cookie
  * @property ThinkRequest $request
  */
-class ThinkApp extends \think\App
+class ThinkApp extends App
 {
 
     /**
