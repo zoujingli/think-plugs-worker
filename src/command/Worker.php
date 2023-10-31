@@ -65,7 +65,7 @@ class Worker extends Command
                 if (class_exists($class)) {
                     new $class;
                 } else {
-                    $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>")
+                    $this->output->writeln("<error>Worker Server Class Not Exists : {$class}</error>");
                 }
             }
             Workerman::runAll();
