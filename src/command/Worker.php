@@ -133,7 +133,7 @@ class Worker extends Command
                     $listen = $this->config['listen'];
                 }
                 if ('start' == $action) {
-                    $output->writeln(sprintf("Starting Workerman %v server...", strstr($listen, ':', true) ?: 'unknow'));
+                    $output->writeln(sprintf("Starting Workerman %s server...", strstr($listen, ':', true) ?: 'unknow'));
                 }
             }
             $worker = $this->makeWorker($this->config['type'] ?? '', $listen ?? '', $this->config['context'] ?? []);
