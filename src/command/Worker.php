@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Worker Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -61,8 +61,8 @@ class Worker extends Command
         }
 
         // 获取基本运行参数
-        $host = $this->getHost();
-        $port = $this->getPort();
+        $host = $this->withHost();
+        $port = $this->withPort();
         $action = $input->getArgument('action');
 
         // 初始化运行环境参数
@@ -109,19 +109,16 @@ class Worker extends Command
         }
 
         if ($custom === 'default') {
-            'start' == $action && $output->writeln('Starting Workerman http server...');
+            if ('start' === $action) $output->writeln('Starting Workerman http server...');
             $worker = new HttpServer($host, $port, $this->config['context'] ?? [], $this->config['callable'] ?? null);
             $worker->setRoot($this->app->getRootPath());
-            if ($this->process->isUnix()) {
-                // 设置热更新监听文件后缀
-                if (empty($this->config['files']['exts'])) $this->config['files']['exts'] = ['*'];
-                // 设置热更新监听文件目录
-                if (empty($this->config['files']['path'])) $this->config['files']['path'] = [
-                    $this->app->getBasePath(), $this->app->getConfigPath(),
-                ];
-                $worker->setMonitorFiles(intval($this->config['files']['time'] ?? 0), $this->config['files']['path'], $this->config['files']['exts']);
-                $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
-            }
+            // 设置热更新监听文件后缀及目录
+            if (empty($this->config['files']['exts'])) $this->config['files']['exts'] = ['*'];
+            if (empty($this->config['files']['path'])) $this->config['files']['path'] = [
+                $this->app->getBasePath(), $this->app->getConfigPath(),
+            ];
+            $worker->setMonitorChange(intval($this->config['files']['time'] ?? 0), $this->config['files']['path'], $this->config['files']['exts']);
+            $worker->setMonitorMemory(intval($this->config['memory']['time'] ?? 0), $this->config['memory']['limit'] ?? null);
         } else {
             if (strtolower($this->config['type']) !== 'business') {
                 if (empty($this->config['listen'])) {
@@ -244,7 +241,7 @@ class Worker extends Command
         }
         global $argv;
         array_shift($argv) && array_shift($argv);
-        array_unshift($argv, "xadmin:worker", $action, "--custom {$custom} --port {$port}");
+        array_unshift($argv, 'xadmin:worker', $action, "--custom {$custom} --port {$port}");
         return true;
     }
 
@@ -252,7 +249,7 @@ class Worker extends Command
      * 获取监听主机
      * @return string
      */
-    private function getHost(): string
+    private function withHost(): string
     {
         if ($this->input->hasOption('host')) {
             return $this->input->getOption('host');
@@ -267,7 +264,7 @@ class Worker extends Command
      * 获取监听端口
      * @return integer
      */
-    private function getPort(): int
+    private function withPort(): int
     {
         if ($this->input->hasOption('port')) {
             return intval($this->input->getOption('port'));

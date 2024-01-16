@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Worker Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -20,7 +20,7 @@ namespace plugin\worker\support;
 
 use plugin\worker\Monitor;
 use plugin\worker\Server;
-use think\admin\service\ProcessService;
+use think\admin\Library;
 use think\admin\service\RuntimeService;
 use Workerman\Connection\TcpConnection;
 use Workerman\Protocols\Http\Request as WorkerRequest;
@@ -79,8 +79,19 @@ class HttpServer extends Server
             class_alias(ThinkResponseFile::class, 'think\response\File');
         }
 
+        // 设置文件变化及内存超限监控管理
+        if (0 == $worker->id && $this->monitor && Library::$sapp->isDebug()) {
+            Monitor::enableChangeMonitor($this->monitor['change_path'] ?? [], $this->monitor['change_exts'] ?? ['*'], $this->monitor['change_time'] ?? 0);
+            Monitor::enableMemoryMonitor($this->monitor['memory_limit'] ?? null, $this->monitor['memory_time'] ?? 0);
+        }
+
         // 初始化运行环境
         RuntimeService::init($this->app)->initialize();
+
+        // 定时发起数据库请求，防止失效而锁死
+        Timer::add(60, function () {
+            $this->app->db->query(sprintf('select %d as stime', time()));
+        });
 
         // 初始化会话
         Session::$name = $this->app->config->get('session.name', 'ssid');
@@ -91,18 +102,6 @@ class HttpServer extends Server
         Session::$lifetime = $this->app->config->get('session.expire', 7200);
         Session::$cookiePath = $this->app->config->get('cookie.path', '/');
         Session::$cookieLifetime = $this->app->config->get('cookie.expire', 0);
-
-        // 定时发起数据库请求，防止失效而锁死
-        Timer::add(60, function () {
-            $this->app->db->query(sprintf('select %d as stime', time()));
-        });
-
-        // 设置文件变化及内存超限监控管理
-        if (ProcessService::isUnix() && 0 == $worker->id && $this->monitor) {
-            Monitor::listen($this->monitor['files_path'] ?? [], $this->monitor['files_exts'] ?? ['*']);
-            Monitor::enableFilesMonitor($this->monitor['files_interval'] ?? 0);
-            Monitor::enableMemoryMonitor($this->monitor['memory_interval'] ?? 0, $this->monitor['memory_limit'] ?? null);
-        }
     }
 
     /**
@@ -149,27 +148,27 @@ class HttpServer extends Server
 
     /**
      * 设置文件监控配置
-     * @param integer $interval
+     * @param integer $time
      * @param array $path 监听目录
      * @param array $exts 文件后缀
      * @return void
      */
-    public function setMonitorFiles(int $interval = 2, array $path = [], array $exts = ['*'])
+    public function setMonitorChange(int $time = 2, array $path = [], array $exts = ['*'])
     {
-        $this->monitor['files_path'] = $path;
-        $this->monitor['files_exts'] = $exts;
-        $this->monitor['files_interval'] = $interval;
+        $this->monitor['change_path'] = $path;
+        $this->monitor['change_exts'] = $exts;
+        $this->monitor['change_time'] = $time;
     }
 
     /**
      * 设置内存监控配置
-     * @param integer $interval
-     * @param string|null $limit
+     * @param integer $time
+     * @param ?string $limit
      * @return void
      */
-    public function setMonitorMemory(int $interval = 60, ?string $limit = null)
+    public function setMonitorMemory(int $time = 60, ?string $limit = null)
     {
+        $this->monitor['memory_time'] = $time;
         $this->monitor['memory_limit'] = $limit;
-        $this->monitor['memory_interval'] = $interval;
     }
 }

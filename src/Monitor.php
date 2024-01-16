@@ -3,7 +3,7 @@
 // +----------------------------------------------------------------------
 // | Worker Plugin for ThinkAdmin
 // +----------------------------------------------------------------------
-// | 版权所有 2014~2023 ThinkAdmin [ thinkadmin.top ]
+// | 版权所有 2014~2024 ThinkAdmin [ thinkadmin.top ]
 // +----------------------------------------------------------------------
 // | 官方网站: https://thinkadmin.top
 // +----------------------------------------------------------------------
@@ -51,14 +51,14 @@ abstract class Monitor
      * @var string
      */
     private static $lockFile;
-    private static $filesTimerId = -1;
+    private static $changeTimerId = -1;
     private static $memoryTimerId = -1;
 
     /**
      * 监听锁定标记
      * @return string
      */
-    private static function tag(): string
+    private static function _tag(): string
     {
         return self::$lockFile ?: (self::$lockFile = syspath('runtime/monitor.lock'));
     }
@@ -69,7 +69,7 @@ abstract class Monitor
      */
     public static function pause()
     {
-        file_put_contents(self::tag(), time());
+        file_put_contents(self::_tag(), time());
     }
 
     /**
@@ -79,7 +79,7 @@ abstract class Monitor
     public static function resume(): void
     {
         clearstatcache();
-        if (is_file(self::tag())) {
+        if (is_file(self::_tag())) {
             unlink(self::$lockFile);
         }
     }
@@ -91,38 +91,17 @@ abstract class Monitor
     public static function isPaused(): bool
     {
         clearstatcache();
-        return file_exists(self::tag());
-    }
-
-    /**
-     * Add Files Monitor
-     * @param array|string $monitorDir
-     * @param array $monitorExtensions
-     * @return void
-     */
-    public static function listen($monitorDir, array $monitorExtensions = ['php'])
-    {
-        foreach ((array)$monitorDir as $dir) self::$paths[$dir] = $monitorExtensions;
-    }
-
-    /**
-     * Remove Files Monitor
-     * @param array|string $monitorDir
-     * @return void
-     */
-    public static function remove($monitorDir)
-    {
-        foreach ((array)$monitorDir as $dir) {
-            unset(self::$paths[$dir]);
-        }
+        return file_exists(self::_tag());
     }
 
     /**
      * Enable Files Monitor
-     * @param integer $interval
+     * @param array $dirs 监听目录
+     * @param array $exts 文件后缀
+     * @param integer $interval 定时器时间
      * @return boolean
      */
-    public static function enableFilesMonitor(int $interval = 3): bool
+    public static function enableChangeMonitor(array $dirs = [], array $exts = ['php'], int $interval = 60): bool
     {
         if ($interval <= 0) return false;
         if (!Worker::getAllWorkers()) return false;
@@ -130,44 +109,87 @@ abstract class Monitor
             echo "\nMonitor file change turned off because exec() has been disabled by disable_functions setting in " . PHP_CONFIG_FILE_PATH . "/php.ini\n";
             return false;
         } else {
-            if (self::$filesTimerId > -1) Timer::del(self::$filesTimerId);
-            self::$filesTimerId = Timer::add($interval, [self::class, 'checkAllFilesChange']);
+            foreach ($dirs as $dir) self::$paths[$dir] = $exts;
+            if (self::$changeTimerId > -1) Timer::del(self::$changeTimerId);
+            self::$changeTimerId = Timer::add($interval, static function () {
+                if (self::isPaused()) return false;
+                foreach (self::$paths as $path => $exts) {
+                    if (self::_checkFilesChange($path, $exts)) {
+                        return true;
+                    }
+                }
+                return false;
+            });
             return true;
-        }
-    }
-
-    /**
-     * Enable Member Monitor
-     * @param integer $interval
-     * @param ?string $limit
-     * @return boolean
-     */
-    public static function enableMemoryMonitor(int $interval = 60, ?string $limit = null): bool
-    {
-        if ($interval <= 0) return false;
-        if (!Worker::getAllWorkers()) return false;
-        if ($memoryLimit = self::getMemoryLimit($limit ?: self::defaultMaxMemory)) {
-            if (self::$memoryTimerId > -1) Timer::del(self::$memoryTimerId);
-            self::$memoryTimerId = Timer::add($interval, [self::class, 'checkMemory'], [$memoryLimit]);
-            return true;
-        } else {
-            return false;
         }
     }
 
     /**
      * Check Files Change
-     * @return bool
+     * @param string $path
+     * @param array $exts
+     * @return boolean
      */
-    public static function checkAllFilesChange(): bool
+    private static function _checkFilesChange(string $path, array $exts): bool
     {
-        if (static::isPaused()) return false;
-        foreach (self::$paths as $path => $extensions) {
-            if (self::checkFilesChange($path, $extensions)) {
-                return true;
+        static $lastMtime, $tooManyFilesCheck;
+        if (!$lastMtime) $lastMtime = time();
+
+        clearstatcache();
+        if (!is_dir($path)) {
+            if (!is_file($path)) return false;
+            $iterator = [new SplFileInfo($path)];
+        } else {
+            // recursive traversal directory
+            $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS));
+        }
+        $count = 0;
+        foreach ($iterator as $file) {
+            $count++;
+            /** var SplFileInfo $file */
+            if (is_dir($file->getRealPath())) continue;
+            // check mtime
+            if ($lastMtime < $file->getMTime() && (in_array('*', $exts) || in_array($file->getExtension(), $exts, true))) {
+                if ($file->getExtension() === 'php') {
+                    exec(ProcessService::php("-l {$file}"), $out, $var);
+                    if ($var) continue;
+                }
+                $lastMtime = $file->getMTime();
+                echo "{$file} update and reload\n";
+                // send SIGUSR1 signal to master process for reload
+                if (DIRECTORY_SEPARATOR === '/') {
+                    posix_kill(posix_getppid(), SIGUSR1);
+                    break;
+                } else {
+                    return true;
+                }
             }
         }
+        if (!$tooManyFilesCheck && $count > 10000) {
+            echo "Monitor: There are too many files ($count files) in $path which makes file monitoring very slow\n";
+            $tooManyFilesCheck = 1;
+        }
         return false;
+    }
+
+    /**
+     * Enable Member Monitor，only windows
+     * @param ?string $limit
+     * @param integer $interval
+     * @return boolean
+     */
+    public static function enableMemoryMonitor(?string $limit = null, int $interval = 60): bool
+    {
+        if ($interval <= 0) return false;
+        if (!Worker::getAllWorkers()) return false;
+        if (!ProcessService::isUnix()) return false;
+        if ($memoryLimit = self::_getMemoryLimit($limit ?: self::defaultMaxMemory)) {
+            self::$memoryTimerId > -1 && Timer::del(self::$memoryTimerId);
+            self::$memoryTimerId = Timer::add($interval, [self::class, 'checkMemory'], [$memoryLimit]);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -194,98 +216,38 @@ abstract class Monitor
                 $mem = $match[1];
             }
             $mem = (int)($mem / 1024);
-            if ($mem >= $memoryLimit) {
-                posix_kill($pid, SIGINT);
-            }
+            $mem >= $memoryLimit && posix_kill($pid, SIGINT);
         }
     }
 
     /**
      * Get memory limit
+     * @param mixed $memoryLimit
      * @return float
      */
-    private static function getMemoryLimit($memoryLimit)
+    private static function _getMemoryLimit($memoryLimit): float
     {
         if ($memoryLimit === 0) {
-            return 0;
+            return floatval(0);
         }
         $usePhpIni = false;
         if (!$memoryLimit) {
-            $memoryLimit = ini_get('memory_limit');
             $usePhpIni = true;
+            $memoryLimit = ini_get('memory_limit');
         }
-
-        if ($memoryLimit == -1) return 0;
+        if ($memoryLimit == -1) return floatval(0);
         $unit = strtolower($memoryLimit[strlen($memoryLimit) - 1]);
         if ($unit === 'g') {
-            $memoryLimit = 1024 * (int)$memoryLimit;
+            $memoryLimit = 1024 * intval($memoryLimit);
         } else if ($unit === 'm') {
-            $memoryLimit = (int)$memoryLimit;
+            $memoryLimit = intval($memoryLimit);
         } else if ($unit === 'k') {
-            $memoryLimit = ((int)$memoryLimit / 1024);
+            $memoryLimit = intval($memoryLimit / 1024);
         } else {
-            $memoryLimit = ((int)$memoryLimit / (1024 * 1024));
+            $memoryLimit = intval($memoryLimit / 1024 / 1024);
         }
-        if ($memoryLimit < 30) {
-            $memoryLimit = 30;
-        }
-        if ($usePhpIni) {
-            $memoryLimit = (int)(0.8 * $memoryLimit);
-        }
-        return $memoryLimit;
-    }
-
-    /**
-     * Check Files Change
-     * @param array|string $monitorDir
-     * @param array $extensions
-     * @return boolean
-     */
-    private static function checkFilesChange($monitorDir, array $extensions): bool
-    {
-        static $lastMtime, $tooManyFilesCheck;
-        if (!$lastMtime) $lastMtime = time();
-
-        clearstatcache();
-        if (!is_dir($monitorDir)) {
-            if (!is_file($monitorDir)) return false;
-            $iterator = [new SplFileInfo($monitorDir)];
-        } else {
-            // recursive traversal directory
-            $dirIterator = new RecursiveDirectoryIterator($monitorDir, FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS);
-            $iterator = new RecursiveIteratorIterator($dirIterator);
-        }
-        $count = 0;
-        foreach ($iterator as $file) {
-            $count++;
-            /** var SplFileInfo $file */
-            if (is_dir($file->getRealPath())) {
-                continue;
-            }
-            // check mtime
-            if ($lastMtime < $file->getMTime() && (in_array('*', $extensions) || in_array($file->getExtension(), $extensions, true))) {
-                $var = 0;
-                exec(ProcessService::php("-l {$file}"), $out, $var);
-                if ($var) {
-                    $lastMtime = $file->getMTime();
-                    continue;
-                }
-                $lastMtime = $file->getMTime();
-                echo $file . " update and reload\n";
-                // send SIGUSR1 signal to master process for reload
-                if (DIRECTORY_SEPARATOR === '/') {
-                    // ProcessService::exec(ProcessService::think('xadmin:worker reload'));
-                    posix_kill(posix_getppid(), SIGUSR1);
-                } else {
-                    return true;
-                }
-                break;
-            }
-        }
-        if (!$tooManyFilesCheck && $count > 1000) {
-            echo "Monitor: There are too many files ($count files) in $monitorDir which makes file monitoring very slow\n";
-            $tooManyFilesCheck = 1;
-        }
-        return false;
+        if ($memoryLimit < 30) $memoryLimit = 30;
+        if ($usePhpIni) $memoryLimit = (int)(0.8 * $memoryLimit);
+        return floatval($memoryLimit);
     }
 }
