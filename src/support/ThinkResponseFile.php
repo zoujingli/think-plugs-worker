@@ -58,17 +58,18 @@ class ThinkResponseFile extends Response
             $name = !$this->isContent ? pathinfo($data, PATHINFO_BASENAME) : '';
         }
         if ($this->isContent) {
-            $size = strlen($data);
+            // $size = strlen($data);
             $mimeType = $this->mimeType;
         } else {
-            $size = filesize($data);
+            // $size = filesize($data);
             $mimeType = $this->getMimeType($data);
         }
         $this->header['Pragma'] = 'public';
         $this->header['Content-Type'] = $mimeType ?: 'application/octet-stream';
         $this->header['Cache-control'] = 'max-age=' . $this->expire;
         $this->header['Content-Disposition'] = ($this->force ? 'attachment; ' : '') . 'filename="' . $name . '"';
-        $this->header['Content-Length'] = $size;
+        // $this->header['Content-Length'] = $size;
+        // $this->header['Transfer-Encoding'] = 'binary';
         $this->header['Content-Transfer-Encoding'] = 'binary';
         $this->header['Expires'] = gmdate("D, d M Y H:i:s", time() + $this->expire) . ' GMT';
         $this->lastModified(gmdate('D, d M Y H:i:s', time()) . ' GMT');
