@@ -74,10 +74,10 @@ class Worker extends Command
 
         // 设置环境运行文件
         if (empty($this->config['worker']['logFile'])) {
-            $this->config['worker']['logFile'] = syspath("safefile/worker/worker_{$port}.log");
+            $this->config['worker']['logFile'] = syspath("safefile/worker/{$custom}_{$port}.log");
         }
         if (empty($this->config['worker']['pidFile'])) {
-            $this->config['worker']['pidFile'] = syspath("safefile/worker/worker_{$port}.pid");
+            $this->config['worker']['pidFile'] = syspath("safefile/worker/{$custom}_{$port}.pid");
         }
         is_dir($dir = dirname($this->config['worker']['pidFile'])) or mkdir($dir, 0777, true);
         is_dir($dir = dirname($this->config['worker']['logFile'])) or mkdir($dir, 0777, true);
